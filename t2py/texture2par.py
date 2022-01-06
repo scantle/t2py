@@ -17,7 +17,7 @@ class InputFile(object):
                  full_output=False, variogram_type=1,
                  sill=1.0, range_max=1E7, range_min=1E7,
                  anistropy=0.0, nugget=0.0, nkrige_wells=16,
-                 KCk=0.007, KFk=0.0099, KHp=0.93, KVp=-0.62, Syp=1.0,
+                 KCk=0.007, KFk=0.0099, KHp=0.93, KVp=-0.62, Stp=1.0,
                  verbose=True):
         self.well_log_file = well_log_file
         self.unit_file = hydrogeo_unit_file
@@ -40,7 +40,7 @@ class InputFile(object):
         self.KFk = KFk
         self.KHp = KHp
         self.KVp = KVp
-        self.Syp = Syp
+        self.Stp = Stp
 
         # TODO pass to pilot points, or equivalent (?)
         self.float_precision ='%.4f'
@@ -61,7 +61,7 @@ class InputFile(object):
         self.aquitard_pp = []
 
         self.parameters = ['sill', 'range_max', 'range_min', 'anisotropy', 'nugget', 'nkrige_wells',
-                           'KCk', 'KFk', 'KHp', 'KVp', 'Syp']
+                           'KCk', 'KFk', 'KHp', 'KVp', 'Stp']
         self.custom_parameter_names = self.parameters
         self.parameters_estimate = [False] * len(self.parameters)
 
@@ -202,7 +202,7 @@ class InputFile(object):
             self._write_value(f, self.KFk, self.float_precision, 'KFk', 'KFk', template_file, p_delimiter)
             self._write_value(f, self.KHp, self.float_precision, 'KHp', 'KHp', template_file, p_delimiter)
             self._write_value(f, self.KVp, self.float_precision, 'KVp', 'KVp', template_file, p_delimiter)
-            self._write_value(f, self.Syp, self.float_precision, 'Syp', 'Syp', template_file, p_delimiter)
+            self._write_value(f, self.Stp, self.float_precision, 'Stp', 'Stp', template_file, p_delimiter)
             # Aquifer Pilot Points
             self._write_section_header(f, 4)
             for i, pp in enumerate(self.aquifer_pp):
