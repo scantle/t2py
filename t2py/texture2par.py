@@ -1,5 +1,7 @@
 from .pilot_points import PilotPoint
 
+#TODO import existing file
+
 class InputFile(object):
     # File Output Lines
     header_line = '*' + '=' * 79 + '\n'
