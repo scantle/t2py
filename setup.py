@@ -2,7 +2,7 @@ from setuptools import setup
 
 setup(
     name='t2py',
-    version='0.0.1',
+    version='0.0.2',
     packages=[''],
     url='https://github.com/scantle/t2py',
     license='MIT',
