@@ -1,0 +1,19 @@
+[build-system]
+requires = ["setuptools>=64", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "t2py"
+version = "0.0.2"
+description = "Texture2Par Python Package"
+authors = [
+  { name = "Leland Scantlebury", email = "leland@sspa.com" }
+]
+license = { text = "MIT" }
+dependencies = [
+  "numpy",
+  "pandas"
+]
+
+[project.urls]
+Repository = "https://github.com/scantle/t2py"
