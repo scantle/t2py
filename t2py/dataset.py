@@ -97,7 +97,6 @@ class Dataset(object):
                            usecols=range(0, len(columns)))
 
     def write_file(self, filename: str, sep: str = '\t', na_rep='-999', float_format='%.5f', header=None):
-        if header is None:
         """
         Writes the dataset to a file in a format compatible with Texture2Par.
 
@@ -117,6 +116,7 @@ class Dataset(object):
             header (bool, optional):
                 Whether to write column headers. If None, defaults to True.
         """
+        if header is None:
             header = True
         columns_to_write = self.columns[:]
         for i, hsu_col in enumerate(self.hsu_columns):
