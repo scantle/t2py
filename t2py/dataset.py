@@ -143,7 +143,7 @@ class Dataset(object):
         else:
             return self.df[['ID', 'X', 'Y']].drop_duplicates()
 
-    def add_wells_by_df(self, df, name_col='Name', x_col='X', y_col='Y', zland_col='Zland',
+    def add_wells_by_df(self, df, name_col='Location', x_col='X', y_col='Y', zland_col='Zland',
                         depth_col='Depth', n_col=None, data_class_cols: dict = None,
                         depth_top_col=None, fill_missing=True):
         """
@@ -160,7 +160,7 @@ class Dataset(object):
             df (pd.DataFrame):
                 DataFrame containing well/log data.
             name_col (str, optional):
-                Column in `df` containing well name or identifier. Defaults to 'Name'.
+                Column in `df` containing well name or identifier. Defaults to 'Location'.
             x_col (str, optional):
                 Column in `df` for the X coordinate. Defaults to 'X'.
             y_col (str, optional):
