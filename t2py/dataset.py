@@ -15,10 +15,12 @@ class Dataset(object):
         max_id (int): Tracks the highest numeric well ID that has been assigned so far.
         nlay (int): Number of layers if HSUs are enabled (0 if none).
         hsu_columns (list): List of strings like ['hsu_1', 'hsu_2', ...] if HSUs are present.
+        has_var (bool): If True, per-class measurement error variance columns are tracked and written
+            as 'var_<class>' immediately after the class columns and before any HSU columns.
     """
     
     def __init__(self, classes: list, hsus: bool = False, nlay: int = 0, filename: str = None,
-                 dataframe: pd.DataFrame = None,
+                 dataframe: pd.DataFrame = None, variance_col = False,
                  **kwargs):
         """
         Initialize the Dataset.
@@ -36,6 +38,8 @@ class Dataset(object):
             dataframe (pd.DataFrame, optional):
                 A pandas DataFrame to initialize `self.df` with. If both filename and dataframe
                 are provided, filename takes precedence.
+            variance_col (bool, optional):
+                Whether a measurement error variance column will be included and written with the data
             **kwargs:
                 Additional keyword arguments passed through to `read_file()`, e.g. custom separators.
 
@@ -45,6 +49,10 @@ class Dataset(object):
         # File Output Lines
         self.columns = ['Location', 'ID', 'n', 'X', 'Y', 'Zland', 'Depth']
         self.columns.extend(classes)
+        self.has_var = variance_col
+        if variance_col:
+            var_cols = [f"var_{c}" for c in classes]
+            self.columns.extend(var_cols)
         self.classes = classes
         self.max_id = 0
 
@@ -73,7 +81,8 @@ class Dataset(object):
         Read a dataset file into a pandas DataFrame.
 
         The file is assumed to have no header row (header=None), and the first row
-        is skipped (skiprows=1). Additional columns beyond the expected ones are ignored.
+        is skipped (skiprows=1). Additional columns beyond the expected ones are ignored. If variance columns are
+        included, be sure to instantiate the Dataset with `variance_col=True`.
 
         Args:
             filename (str):
@@ -145,6 +154,7 @@ class Dataset(object):
 
     def add_wells_by_df(self, df, name_col='Location', x_col='X', y_col='Y', zland_col='Zland',
                         depth_col='Depth', n_col=None, data_class_cols: dict = None,
+                        var_class_cols: dict = None,
                         depth_top_col=None, fill_missing=True):
         """
         Add well data from an external DataFrame into the Dataset.
@@ -176,6 +186,9 @@ class Dataset(object):
                 A mapping of {class_name: column_in_df} that indicates which column holds data
                 for each class in `self.classes`. If not provided, defaults to
                 {class_name: class_name}. The function checks that each column exists in `df`.
+            var_class_cols (dict, optional):
+                Mapping {class_name: variance_column_in_df}. Only used if `variance_col=True`.
+                If not provided, defaults to var_[class_name]. The function checks that each column exists in `df`.
             depth_top_col (str, optional):
                 Column name for the top depth of an interval. If provided, we can fill the
                 data gaps between intervals (by adding rows) if `fill_missing=True`.
@@ -192,9 +205,16 @@ class Dataset(object):
                 If data_class_cols includes a key not in `self.classes`, or references a column
                 not found in `df`.
             ValueError:
+                If variance columns are expected and Var_class_cols includes a key not in `self.classes`,
+                or references a column not found in `df`.
+            ValueError:
                 If HSUs are enabled (`self.nlay > 0`) but the corresponding HSU columns
                 are not in `df`.
         """
+
+        # Work on a copy
+        df = df.copy()
+
         if name_col not in df.columns or x_col not in df.columns or y_col not in df.columns or zland_col not in df.columns or depth_col not in df.columns:
             raise ValueError('Missing necessary columns in dataframe.')
 
@@ -206,6 +226,17 @@ class Dataset(object):
                 raise ValueError(f'Invalid class {key}')
             if col_name not in df.columns:
                 raise ValueError(f'Missing column for class {key}')
+
+        # Handle variance columns, if using
+        if self.has_var and var_class_cols is None:
+            var_class_cols = {key: f'var_{key}' for key in self.classes}
+
+        if self.has_var:
+            for key, col_name in var_class_cols.items():
+                if key not in self.classes:
+                    raise ValueError(f'Invalid class {key} in argument var_class_cols')
+                if col_name not in df.columns:
+                    raise ValueError(f'Missing column for class measurement error (variance) {key}')
 
         if self.nlay > 0:
             for i in range(1, self.nlay + 1):
@@ -267,6 +298,10 @@ class Dataset(object):
 
         for key, col_name in data_class_cols.items():
             pdf[key] = df[col_name]
+
+        if self.has_var:
+            for key, col_name in var_class_cols.items():
+                pdf[f'var_{key}'] = df[col_name]
 
         if self.nlay > 0:
             for i in range(1, self.nlay + 1):
